@@ -1,10 +1,27 @@
+const e = require("express");
 const { AppError, sendResponse } = require("../helper/ultis");
 const Users = require("../models/Users");
 
 const userController = {};
 userController.getAllUser = async (req, res, next) => {
+  const targetName = req.query;
+  const { todayDate, fromDate } = req.body;
   try {
-    const lisAllUSers = await Users.find();
+    let lisAllUSers = null;
+    if (targetName.name) {
+      lisAllUSers = await Users.find(targetName);
+    } else if (targetName.status) {
+      lisAllUSers = await Users.find();
+      lisAllUSers = lisAllUSers.filter((e) => e.role === targetName.status);
+    } else if (todayDate || fromDate) {
+      // console.log(targetName.date);
+      const d = new Date(todayDate);
+      d.setDate(d.getDate() - fromDate);
+      const newD = new Date();
+      lisAllUSers = await Users.find({ createdAt: { $gte: d, $lt: newD } });
+    } else {
+      lisAllUSers = await Users.find();
+    }
     if (!lisAllUSers) new AppError(400, "Bad Request", "Not Found");
     sendResponse(
       res,
@@ -13,6 +30,26 @@ userController.getAllUser = async (req, res, next) => {
       { data: lisAllUSers },
       null,
       "get user successfully"
+    );
+  } catch (error) {
+    next(error);
+  }
+};
+
+userController.getByIdUser = async (req, res, next) => {
+  const { id } = req.params;
+  try {
+    const user = await Users.findById(id);
+    console.log(user.createdAt);
+    console.log(new Date());
+    if (!user) new AppError(400, "Bad request", "Not Found");
+    sendResponse(
+      res,
+      200,
+      true,
+      { data: user },
+      null,
+      "get user by ID success"
     );
   } catch (error) {
     next(error);
@@ -31,24 +68,6 @@ userController.createUser = async (req, res, next) => {
       { data: createUser },
       null,
       "create user successfully"
-    );
-  } catch (error) {
-    next(error);
-  }
-};
-
-userController.getByIdUser = async (req, res, next) => {
-  const { id } = req.params;
-  try {
-    const user = await Users.findById(id);
-    if (!user) new AppError(400, "Bad request", "Not Found");
-    sendResponse(
-      res,
-      200,
-      true,
-      { data: user },
-      null,
-      "get user by ID success"
     );
   } catch (error) {
     next(error);

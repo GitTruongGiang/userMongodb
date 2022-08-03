@@ -4,8 +4,14 @@ const Task = require("../models/Task");
 const User = require("../models/Users");
 
 taskController.getAllTask = async (req, res, next) => {
+  const targetStatus = req.query;
   try {
-    const ListTask = await Task.find();
+    let ListTask = null;
+    if (targetStatus.status) {
+      ListTask = await Task.find(targetStatus);
+    } else {
+      ListTask = await Task.find();
+    }
     if (!ListTask) new AppError(400, "Bad Request", "Not Found");
     sendResponse(
       res,
@@ -22,6 +28,7 @@ taskController.getAllTask = async (req, res, next) => {
 taskController.createTask = async (req, res, next) => {
   const infoTask = req.body;
   try {
+    //check user and fontend send request inculding userId
     if (!infoTask) new AppError(400, "Bad Request", "Missing body info");
     const createTask = await Task.create(infoTask);
     sendResponse(
@@ -37,32 +44,107 @@ taskController.createTask = async (req, res, next) => {
   }
 };
 taskController.assgineeTask = async (req, res, next) => {
-  const { targetName } = req.params;
+  const { id } = req.params;
   const { ref } = req.body;
+  const options = { new: true };
   try {
-    let found = await Task.findOne({ name: targetName }).populate("assignee");
-    const refound = await User.findById(ref);
-    if (!refound) new AppError(400, "Bad Request", "not found");
-    found.assignee = ref;
-    found = await found.save();
-    sendResponse(res, 200, true, { data: found }, null, "Add assginee success");
+    // let found = await Task.findOne({ name: targetName }).populate("assignee");
+    let task = await Task.findByIdAndUpdate(id, { assignee: ref }, options);
+    // const refound = await User.findById(ref);
+    // if (!refound) new AppError(400, "Bad Request", "not found");
+    // found.assignee = ref;
+    // found = await found.save();
+    sendResponse(res, 200, true, { data: task }, null, "Add assginee success");
+  } catch (error) {
+    next(error);
+  }
+};
+taskController.updateTask = async (req, res, next) => {
+  const { targetName } = req.params;
+  const { data, id } = req.body;
+  const options = { new: true };
+  try {
+    const user = await User.findOne({ name: targetName });
+    if (user.role === "manager") {
+      const taskUpdate = await Task.findByIdAndUpdate(id, data, options);
+      sendResponse(
+        res,
+        200,
+        true,
+        { data: taskUpdate },
+        null,
+        "update task success"
+      );
+    }
+    if (user.role === "employee") {
+      let taskId = await Task.findById(id);
+      if (taskId.status === "done") {
+        let taskUpdate = null;
+        let err = null;
+        data.status === "archive"
+          ? (taskUpdate = await Task.findByIdAndUpdate(id, data, options))
+          : (err = new AppError(400, "Bad Request", "not archive"));
+        taskUpdate
+          ? sendResponse(
+              res,
+              200,
+              true,
+              { data: taskUpdate },
+              null,
+              "update task success"
+            )
+          : next(err);
+      }
+      if (taskId.status !== "done") {
+        const taskUpdate = await Task.findByIdAndUpdate(id, data, options);
+        console.log(taskUpdate);
+        sendResponse(
+          res,
+          200,
+          true,
+          { data: taskUpdate },
+          null,
+          "update task success"
+        );
+      }
+    }
   } catch (error) {
     next(error);
   }
 };
 taskController.deleteTask = async (req, res, next) => {
   const { id } = req.params;
+  const { refIsDelete } = req.body;
   const options = { new: true };
   try {
-    const deleteTask = await Task.findByIdAndDelete(id, options);
-    sendResponse(
-      res,
-      200,
-      true,
-      { data: deleteTask },
-      null,
-      "delete task success"
-    );
+    const TaskId = await Task.findById(id);
+    console.log(TaskId.isDelete);
+    if (TaskId.isDelete === false) {
+      const deleteTask = await Task.findByIdAndUpdate(
+        id,
+        { isDelete: refIsDelete },
+        options
+      );
+      sendResponse(
+        res,
+        200,
+        true,
+        { data: deleteTask },
+        null,
+        "delete task success"
+      );
+    }
+    if (TaskId.isDelete === true) {
+      const deleteTask = await Task.findOneAndDelete(id, options);
+      sendResponse(
+        res,
+        200,
+        true,
+        { data: deleteTask },
+        null,
+        "delete task success"
+      );
+    }
   } catch (error) {
     next(error);
   }

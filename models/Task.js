@@ -8,8 +8,10 @@ const TaskSchema = Schema(
     status: {
       type: String,
       enum: ["pending", "working", "review", "done", "archive"],
+      default: "pending",
       required: true,
     },
+    isDelete: { type: Boolean, default: false, required: true },
     assignee: { type: mongoose.SchemaTypes.ObjectId, ref: "User" },
   },
   { timeStamps: true }
