@@ -1,4 +1,5 @@
-const e = require("express");
+const express = require("express");
+const { validationResult } = require("express-validator");
 const { AppError, sendResponse } = require("../helper/ultis");
 const Users = require("../models/Users");
 
@@ -58,6 +59,11 @@ userController.getByIdUser = async (req, res, next) => {
 
 userController.createUser = async (req, res, next) => {
   const infoUser = req.body;
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ errors: errors.array() });
+  }
+
   try {
     if (!infoUser) new AppError(400, "Bad request", "Missing body info");
     const createUser = await Users.create(infoUser);

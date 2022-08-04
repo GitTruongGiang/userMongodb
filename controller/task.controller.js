@@ -1,4 +1,5 @@
 const taskController = {};
+const { validationResult } = require("express-validator");
 const { AppError, sendResponse } = require("../helper/ultis");
 const Task = require("../models/Task");
 const User = require("../models/Users");
@@ -27,6 +28,10 @@ taskController.getAllTask = async (req, res, next) => {
 };
 taskController.createTask = async (req, res, next) => {
   const infoTask = req.body;
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ errors: errors.array() });
+  }
   try {
     //check user and fontend send request inculding userId
     if (!infoTask) new AppError(400, "Bad Request", "Missing body info");

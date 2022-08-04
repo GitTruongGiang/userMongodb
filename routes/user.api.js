@@ -1,5 +1,6 @@
 const express = require("express");
 const router = express.Router();
+const { body } = require("express-validator");
 
 const {
   getAllUser,
@@ -11,7 +12,7 @@ const {
 
 router.get("/", getAllUser);
 router.get("/:id", getByIdUser);
-router.post("/", createUser);
+router.post("/", body("name").isString(), body("role").isString(), createUser);
 router.put("/:id", updateUser);
 router.delete("/:id", deleteUser);
 
