@@ -5,11 +5,11 @@ const Task = require("../models/Task");
 const User = require("../models/Users");
 
 taskController.getAllTask = async (req, res, next) => {
-  const targetStatus = req.query;
+  const { status } = req.body;
   try {
     let ListTask = null;
-    if (targetStatus.status) {
-      ListTask = await Task.find(targetStatus);
+    if (status) {
+      ListTask = await Task.find({ status: status });
     } else {
       ListTask = await Task.find();
     }
