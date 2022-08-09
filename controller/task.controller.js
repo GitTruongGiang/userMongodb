@@ -5,17 +5,17 @@ const Task = require("../models/Task");
 const User = require("../models/Users");
 
 taskController.getAllTask = async (req, res, next) => {
-  const { name, id, status } = req.body;
+  const target = req.query;
   try {
     let ListTask = null;
-    if (status) {
-      ListTask = await Task.find({ status: status });
-    } else if (name) {
+    if (target.status) {
+      ListTask = await Task.find({ status: target.status });
+    } else if (target.name) {
       ListTask = await Task.find({
         name: { $regex: name },
       });
-    } else if (id) {
-      ListTask = await Task.findById(id);
+    } else if (target.id) {
+      ListTask = await Task.findById(target.id);
     } else {
       ListTask = await Task.find();
     }

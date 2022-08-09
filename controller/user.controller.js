@@ -12,7 +12,7 @@ userController.getAllUser = async (req, res, next) => {
     if (target.name) {
       lisAllUSers = await Users.find({ name: target.name });
     } else if (target.id) {
-      lisAllUSers = await Users.find({ name: target.id });
+      lisAllUSers = await Users.findById(target.id);
     } else if (target.role) {
       lisAllUSers = await Users.find();
       lisAllUSers = lisAllUSers.filter((e) => e.role === target.role);
