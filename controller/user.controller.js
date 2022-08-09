@@ -5,16 +5,17 @@ const Users = require("../models/Users");
 
 const userController = {};
 userController.getAllUser = async (req, res, next) => {
-  const { todayDate, fromDate, name, status, description } = req.body;
+  const target = req.query;
+  const { todayDate, fromDate } = req.body;
   try {
     let lisAllUSers = null;
-    if (name) {
-      lisAllUSers = await Users.find({ name: name });
-    } else if (description) {
-      lisAllUSers = await Users.find({ description: description });
-    } else if (status) {
+    if (target.name) {
+      lisAllUSers = await Users.find({ name: target.name });
+    } else if (target.id) {
+      lisAllUSers = await Users.find({ name: target.id });
+    } else if (target.role) {
       lisAllUSers = await Users.find();
-      lisAllUSers = lisAllUSers.filter((e) => e.role === status);
+      lisAllUSers = lisAllUSers.filter((e) => e.role === target.role);
     } else if (todayDate || fromDate) {
       // console.log(targetName.date);
       const d = new Date(todayDate);

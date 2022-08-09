@@ -14,8 +14,6 @@ taskController.getAllTask = async (req, res, next) => {
       ListTask = await Task.find({
         name: { $regex: name },
       });
-      console.log(ListTask);
-      console.log(name);
     } else if (id) {
       ListTask = await Task.findById(id);
     } else {
