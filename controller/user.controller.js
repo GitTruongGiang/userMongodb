@@ -5,12 +5,13 @@ const Users = require("../models/Users");
 
 const userController = {};
 userController.getAllUser = async (req, res, next) => {
-  const targetName = req.query;
-  const { todayDate, fromDate, name, status } = req.body;
+  const { todayDate, fromDate, name, status, description } = req.body;
   try {
     let lisAllUSers = null;
     if (name) {
       lisAllUSers = await Users.find({ name: name });
+    } else if (description) {
+      lisAllUSers = await Users.find({ description: description });
     } else if (status) {
       lisAllUSers = await Users.find();
       lisAllUSers = lisAllUSers.filter((e) => e.role === status);

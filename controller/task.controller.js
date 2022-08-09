@@ -5,11 +5,19 @@ const Task = require("../models/Task");
 const User = require("../models/Users");
 
 taskController.getAllTask = async (req, res, next) => {
-  const { status } = req.body;
+  const { name, id, status } = req.body;
   try {
     let ListTask = null;
     if (status) {
       ListTask = await Task.find({ status: status });
+    } else if (name) {
+      ListTask = await Task.find({
+        name: { $regex: name },
+      });
+      console.log(ListTask);
+      console.log(name);
+    } else if (id) {
+      ListTask = await Task.findById(id);
     } else {
       ListTask = await Task.find();
     }
@@ -70,19 +78,61 @@ taskController.updateTask = async (req, res, next) => {
   const options = { new: true };
   try {
     const user = await User.findOne({ name: targetName });
-    if (user.role === "manager") {
-      const taskUpdate = await Task.findByIdAndUpdate(id, data, options);
-      sendResponse(
-        res,
-        200,
-        true,
-        { data: taskUpdate },
-        null,
-        "update task success"
-      );
-    }
     if (user.role === "employee") {
       let taskId = await Task.findById(id);
+      if (taskId.status === "pending") {
+        let taskUpdate = null;
+        let err = null;
+        data.status === "working"
+          ? (taskUpdate = await Task.findByIdAndUpdate(id, data, options))
+          : (err = new AppError(400, "Bad Request", "not working"));
+        sendResponse(
+          res,
+          200,
+          true,
+          { data: taskUpdate },
+          null,
+          "update task success"
+        );
+      } else if (taskId.status === "working") {
+        let taskUpdate = null;
+        let err = null;
+        data.status === "review"
+          ? (taskUpdate = await Task.findByIdAndUpdate(id, data, options))
+          : (err = new AppError(400, "Bad Request", "not review"));
+        sendResponse(
+          res,
+          200,
+          true,
+          { data: taskUpdate },
+          null,
+          "update task success"
+        );
+      } else if (taskId.status === "review") {
+        data
+          ? (err = new AppError(400, "Bad Request", "not update"))
+          : (err = new AppError(400, "Bad Request", "not update"));
+      }
+    }
+    if (user.role === "manager") {
+      let taskId = await Task.findById(id);
+      if (taskId.status === "review") {
+        let taskUpdate = null;
+        let err = null;
+        data.status === "done"
+          ? (taskUpdate = await Task.findByIdAndUpdate(id, data, options))
+          : (err = new AppError(400, "Bad Request", "not done"));
+        taskUpdate
+          ? sendResponse(
+              res,
+              200,
+              true,
+              { data: taskUpdate },
+              null,
+              "update task success"
+            )
+          : next(err);
+      }
       if (taskId.status === "done") {
         let taskUpdate = null;
         let err = null;
