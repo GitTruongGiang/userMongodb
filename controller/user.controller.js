@@ -10,7 +10,7 @@ userController.getAllUser = async (req, res, next) => {
   try {
     let lisAllUSers = null;
     if (target.name) {
-      lisAllUSers = await Users.find({ name: target.name });
+      lisAllUSers = await Users.find({ name: { $regex: target.name } });
     } else if (target.id) {
       lisAllUSers = await Users.findById(target.id);
     } else if (target.role) {
@@ -43,8 +43,6 @@ userController.getByIdUser = async (req, res, next) => {
   const { id } = req.params;
   try {
     const user = await Users.findById(id);
-    console.log(user.createdAt);
-    console.log(new Date());
     if (!user) new AppError(400, "Bad request", "Not Found");
     sendResponse(
       res,

@@ -9,10 +9,10 @@ taskController.getAllTask = async (req, res, next) => {
   try {
     let ListTask = null;
     if (target.status) {
-      ListTask = await Task.find({ status: target.status });
+      ListTask = await Task.find({ status: { $regex: target.status } });
     } else if (target.name) {
       ListTask = await Task.find({
-        name: { $regex: name },
+        name: { $regex: target.name },
       });
     } else if (target.id) {
       ListTask = await Task.findById(target.id);
